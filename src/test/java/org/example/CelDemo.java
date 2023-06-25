@@ -189,7 +189,7 @@ public class CelDemo {
 
         for (Map.Entry<String, String> entry : validationRules.entrySet()) {
             String field = entry.getKey();
-            Object validationRule = entry.getValue();
+            String validationRule = entry.getValue();
 
 
             if (firstItem) {
@@ -198,7 +198,7 @@ public class CelDemo {
                 scriptExpressionBuilder.append(" && ");
             }
 
-            scriptExpressionBuilder.append(validationRule.toString());
+            scriptExpressionBuilder.append(validationRule.replace(field, inputKey + "." + field));
         }
 
         Script script = scriptHost.buildScript(scriptExpressionBuilder.toString())
@@ -218,9 +218,9 @@ public class CelDemo {
 
     private Map<String, String> loadValidationRules() {
         Map<String, String> validationRules = new HashMap<>();
-        validationRules.put("name", "input.name == 'hai' ");
-        validationRules.put("address.city", "size(input.address.city) > 5 ");
-        validationRules.put("address.street", "size(input.address.street) > 5 ");
+        validationRules.put("name", "name == 'hai' ");
+        validationRules.put("address.city", "size(address.city) > 5 ");
+        validationRules.put("address.street", "size(address.street) > 5 ");
 
         return validationRules;
     }
