@@ -169,6 +169,62 @@ public class CelDemo {
         Assertions.assertTrue(result);
     }
 
+    @Test
+    public void buildCheckInputSizeValidationScriptForRawJsonWithConfigRules() throws ScriptException, JsonProcessingException {
+        String inputKey = "input";
+        String inputJson = "{\"name\":\"hai\",\"address\":{\"city\":\"hochiminh\",\"street\":\"nguyenhuucanh\"}}";
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        TypeReference<Map<String, Object>> typeReference = new TypeReference<>() {};
+
+        Map<String, Object> input = objectMapper.readValue(inputJson, typeReference);
+
+        ScriptHost scriptHost = ScriptHost.newBuilder()
+                .registry(JacksonRegistry.newRegistry())
+                .build();
+
+        Map<String, String> validationRules = loadValidationRules();
+        StringBuilder scriptExpressionBuilder = new StringBuilder();
+        boolean firstItem = true;
+
+        for (Map.Entry<String, String> entry : validationRules.entrySet()) {
+            String field = entry.getKey();
+            Object validationRule = entry.getValue();
+
+
+            if (firstItem) {
+                firstItem = false;
+            } else {
+                scriptExpressionBuilder.append(" && ");
+            }
+
+            scriptExpressionBuilder.append(validationRule.toString());
+        }
+
+        Script script = scriptHost.buildScript(scriptExpressionBuilder.toString())
+                .withDeclarations(
+                        Decls.newVar(inputKey, Decls.Any)
+                )
+                .build();
+
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put(inputKey, input);
+
+        boolean result = script.execute(Boolean.class, arguments);
+
+        System.out.println("Result: " + result);
+        Assertions.assertTrue(result);
+    }
+
+    private Map<String, String> loadValidationRules() {
+        Map<String, String> validationRules = new HashMap<>();
+        validationRules.put("name", "input.name == 'hai' ");
+        validationRules.put("address.city", "size(input.address.city) > 5 ");
+        validationRules.put("address.street", "size(input.address.street) > 5 ");
+
+        return validationRules;
+    }
+
     @Getter
     @Setter
     @Builder
